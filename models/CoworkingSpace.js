@@ -37,8 +37,8 @@ const CoworkingSpaceSchema = new mongoose.Schema({
 });
 
 //Reverse populate with virtuals
-CoworkingSpaceSchema.virtual('appointments', {
-    ref : 'Appointment',
+CoworkingSpaceSchema.virtual('reservations', {
+    ref : 'Reservation',
     localField : '_id',
     foreignField : 'coworkingSpace',
     justOne : false
