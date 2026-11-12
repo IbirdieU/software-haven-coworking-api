@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/IbirdieU/coworking-space-reservation-api.git"
+    "url": "git+https://github.com/IbirdieU/software-haven-coworking-api.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/IbirdieU/coworking-space-reservation-api/issues"
+    "url": "https://github.com/IbirdieU/software-haven-coworking-api/issues"
   },
-  "homepage": "https://github.com/IbirdieU/coworking-space-reservation-api#readme",
+  "homepage": "https://github.com/IbirdieU/software-haven-coworking-api#readme",
   "dependencies": {
     "@exortek/express-mongo-sanitize": "^4.0.0",
     "bcryptjs": "^3.0.3",
