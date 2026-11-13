@@ -51,6 +51,7 @@ exports.login = async (req,res,next)=>{
     //res.status(200).json({success:true});
     sendTokenResponse(user, 200, res);
     } catch(err){
+        console.log(err.stack);
         res.status(401).json({success:false,msg : 'Cannot convert email or password to string'});
     }
 }

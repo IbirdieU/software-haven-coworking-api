@@ -40,7 +40,7 @@ exports.getCoworkingSpaces = async (req,res,next) => {
     const endIndex = page * limit;
     
     try{
-        const total = await CoworkingSpace.countDocuments();
+        const total = await CoworkingSpace.countDocuments(JSON.parse(queryStr));
         query = query.skip(startIndex).limit(limit);
 
         //Executing query
