@@ -16,15 +16,17 @@ const ReservationSchema = new mongoose.Schema({
         required : true
     },
     attendees : {
-        type : Number, // จำนวนคน
-        required : true
+        type : Number,
+        required : true,
+        min : 1 // Require at least 1 attendee
     },
     specialRequest : {
         type : String
     },
     status : {
         type : String,
-        default : 'pending' // ['pending', 'confirmed', 'cancelled']
+        enum : ['confirmed', 'checked-in', 'expired'], // Limit status values
+        default : 'confirmed' // Set default status
     },
     createdAt : {
         type : Date,

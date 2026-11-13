@@ -1,8 +1,8 @@
 const dotenv = require('dotenv');
 const express = require('express');
 const cookieParser = require('cookie-parser');
-const hospitals = require('./routes/hospitals');
-const appointments = require('./routes/appointments');
+const coworkingspaces = require('./routes/coworkingspaces'); // เปลี่ยนชื่อไฟล์
+const reservations = require('./routes/reservations'); // เปลี่ยนชื่อไฟล์
 const auth = require('./routes/auth');
 const connectDB = require('./config/db');
 const mongoSanitize=require('@exortek/express-mongo-sanitize');
@@ -13,7 +13,6 @@ const hpp=require('hpp');
 const cors=require('cors');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUI = require('swagger-ui-express');
-
 
 //Load env vars
 dotenv.config({path:'./config/config.env'}); 
@@ -68,9 +67,11 @@ const swaggerOptions={
 };
 const swaggerDocs=swaggerJsDoc(swaggerOptions);
 app.use('/api-docs',swaggerUI.serve, swaggerUI.setup(swaggerDocs));
-app.use('/api/v1/hospitals', hospitals);
+
+// แก้ไข path ตรงนี้
+app.use('/api/v1/coworkingspaces', coworkingspaces); 
+app.use('/api/v1/reservations', reservations);
 app.use('/api/v1/auth', auth);
-app.use('/api/v1/appointments', appointments);
 
 const PORT = process.env.PORT || 5000;
 
