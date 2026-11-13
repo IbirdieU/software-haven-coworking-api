@@ -8,13 +8,13 @@ exports.getReservations = async (req,res,next) => {
     let query;
     //General users can see only their reservations!
     if (req.user.role !== 'admin') { 
-        query = Reservation.find({user : req.user.id}).populate({'path' : 'coworkingSpace', select : 'name province tel'});
+        query = Reservation.find({user : req.user.id}).populate({'path' : 'coworkingSpace', select : 'name address tel'});
     }else{//If you are admin you can see all!
         if(req.params.coworkingSpaceId) {
             console.log(req.params.coworkingSpaceId);
-            query = Reservation.find({coworkingSpace : req.params.coworkingSpaceId}).populate({'path' : 'coworkingSpace', select : 'name province tel'});
+            query = Reservation.find({coworkingSpace : req.params.coworkingSpaceId}).populate({'path' : 'coworkingSpace', select : 'name address tel'});
         } else {
-            query = Reservation.find().populate({'path' : 'coworkingSpace', select : 'name province tel'});
+            query = Reservation.find().populate({'path' : 'coworkingSpace', select : 'name address tel'});
         }
     }
     try {
@@ -31,7 +31,7 @@ exports.getReservations = async (req,res,next) => {
 //@access  Public
 exports.getReservation = async (req,res,next) => {
     try {
-        const reservation = await Reservation.findById(req.params.id).populate({'path' : 'coworkingSpace', select : 'name province tel'});
+        const reservation = await Reservation.findById(req.params.id).populate({'path' : 'coworkingSpace', select : 'name address tel'});
         if(!reservation) {
             return res.status(400).json({success : false, message : `No reservation with id of ${req.params.id}`})
         }
