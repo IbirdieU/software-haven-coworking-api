@@ -71,6 +71,8 @@ exports.addReservation = async (req,res,next) => {
         //add user to req.body
         req.body.user = req.user.id;
 
+        req.body.status = 'confirmed';
+
         // คำนวณเวลาย้อนหลังไป 15 นาทีจากปัจจุบัน
         const expireTime = new Date(Date.now() - 15 * 60 * 1000); 
         // อัปเดตรายการที่ยังเป็น confirmed และเวลา resvDate เก่ากว่า 15 นาทีที่แล้ว ให้กลายเป็น expired
@@ -154,3 +156,41 @@ exports.deleteReservation = async (req,res,next) => {
         return res.status(500).json({success:false,message: "Cannot delete reservation"});
     }
 }
+
+//@desc Check in reservation
+// @route PUT /api/v1/reservations/:id/checkin
+// @access Private
+exports.checkInReservation = async (req,res,next) => {
+    try {
+        let reservation = await Reservation.findById(req.params.id);
+        if(!reservation) {
+            return res.status(400).json({success : false, message : `No reservation with id of ${req.params.id}`})
+        }
+
+        //Make sure user is the reservation owner
+        if(reservation.user.toString() !== req.user.id && req.user.role !== 'admin') {
+            return res.status(401).json({success : false, message : `User ${req.user.id} is not authorized to check in this reservation`})
+        }
+
+        //Only confirmed reservations can be checked in
+        if (reservation.status !== 'confirmed') {
+            return res.status(400).json({success : false, message : `Reservation is already ${reservation.status}`})
+        }
+
+        //Check in must be within 15 minutes of the reservation start time
+        const deadline = new Date(reservation.resvDate.getTime() + 15 * 60 * 1000);
+        if (Date.now() > deadline) {
+            return res.status(400).json({success : false, message : `Check-in time has passed for reservation ${req.params.id}`})
+        }
+        
+        reservation = await Reservation.findByIdAndUpdate(req.params.id, {status : 'checked-in'}, {
+            new : true,
+            runValidators : true
+        });
+        res.status(200).json({success : true, data : reservation});
+
+    } catch(err) {
+        console.log(err);
+        return res.status(500).json({success:false,message: "Cannot check in reservation"});
+    }
+} 

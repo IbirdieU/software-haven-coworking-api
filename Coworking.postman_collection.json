@@ -18,7 +18,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\nconst response = pm.response.json();\r\n\r\nconsole.log(response);\r\n\r\npm.test(\"There are some hospitals!!\", () => {\r\n    pm.expect(response.count).to.be.above(0);\r\n})\r\n\r\npm.execution.setNextRequest(\"Create New Hospital\");"
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\nconst response = pm.response.json();\r\n\r\nconsole.log(response);\r\n\r\npm.test(\"There are some hospitals!!\", () => {\r\n    pm.expect(response.count).to.be.above(0);\r\n})\r\n\r\npm.execution.setNextRequest(\"Create New Hospital\");\r\npm.environment.set(\"coworkingSpace_ID\", pm.response.json().data[0]._id);"
                 ]
               }
             },
@@ -36,14 +36,14 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{URL}}/api/v1/hospitals",
+              "raw": "{{URL}}/api/v1/coworkingspaces",
               "host": [
                 "{{URL}}"
               ],
               "path": [
                 "api",
                 "v1",
-                "hospitals"
+                "coworkingspaces"
               ]
             },
             "description": "Fetch all hospitals from database."
@@ -58,7 +58,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\npm.execution.setNextRequest(\"Update Single Hospital\");"
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});"
                 ]
               }
             }
@@ -77,21 +77,19 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{URL}}/api/v1/hospitals/:hospital_ID",
+              "raw": "{{URL}}/api/v1/coworkingspaces?name=Haven Space Chula",
               "host": [
                 "{{URL}}"
               ],
               "path": [
                 "api",
                 "v1",
-                "hospitals",
-                ":hospital_ID"
+                "coworkingspaces"
               ],
-              "variable": [
+              "query": [
                 {
-                  "key": "hospital_ID",
-                  "value": "{{global_hospital_ID}}",
-                  "description": "ID of the newly created hospital"
+                  "key": "name",
+                  "value": "Haven Space Chula"
                 }
               ]
             },
@@ -307,7 +305,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"name\": \"Admin\",\r\n  \"tel\": \"0812345678\",\r\n  \"email\": \"admin@gmail.com\",\r\n  \"password\": \"123456\",\r\n  \"role\": \"admin\"\r\n}",
+              "raw": "{\r\n  \"name\": \"User2\",\r\n  \"tel\": \"0818888888\",\r\n  \"email\": \"user2@gmail.com\",\r\n  \"password\": \"123456\",\r\n  \"role\": \"user\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -353,7 +351,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"email\" : \"admin2@gmail.com\",\r\n    \"password\" : \"12345678\"\r\n}",
+              "raw": "{\r\n    \"email\" : \"admin@gmail.com\",\r\n    \"password\" : \"123456\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -452,89 +450,19 @@
       "name": "Reservation",
       "item": [
         {
-          "name": "Get All Reservations",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{URL}}/api/v1/appointments",
-              "host": [
-                "{{URL}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "appointments"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Reservation for Hospital",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{Token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{URL}}/api/v1/hospitals/6a7a015513c8c7f056f75267/appointments",
-              "host": [
-                "{{URL}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "hospitals",
-                "6a7a015513c8c7f056f75267",
-                "appointments"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get One Reservation",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": ""
-            }
-          },
-          "response": []
-        },
-        {
           "name": "Add One Reservation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\npm.environment.set(\"reservation_ID\", pm.response.json().data._id);"
+                ]
+              }
+            }
+          ],
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{Token}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "POST",
             "header": [
               {
@@ -545,7 +473,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"apptDate\" : \"2026-04-10T17:00:00.000Z\",\r\n    \"user\" : \"6a9fb7c938b83592f86f7fe2\"\r\n}",
+              "raw": "{\r\n    \"resvDate\": \"2026-11-18T10:00:00\", \r\n    \"attendees\": 2, \r\n    \"specialRequest\": \"Need a projector\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -553,16 +481,124 @@
               }
             },
             "url": {
-              "raw": "{{URL}}/api/v1/hospitals/6a7a015513c8c7f056f7529c/appointment",
+              "raw": "{{URL}}/api/v1/coworkingspaces/{{coworkingSpace_ID}}/reservations",
               "host": [
                 "{{URL}}"
               ],
               "path": [
                 "api",
                 "v1",
-                "hospitals",
-                "6a7a015513c8c7f056f7529c",
-                "appointment"
+                "coworkingspaces",
+                "{{coworkingSpace_ID}}",
+                "reservations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add 4th Reservation Copy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {\r\n    pm.response.to.have.status(400);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "description": "JSON Type"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"resvDate\": \"2026-11-20T10:00:00\", \r\n    \"attendees\": 2, \r\n    \"specialRequest\": \"Need a projector\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/coworkingspaces/{{coworkingSpace_ID}}/reservations",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coworkingspaces",
+                "{{coworkingSpace_ID}}",
+                "reservations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Reservations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/reservations",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get One Reservation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/reservations/{{reservation_ID}}",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservations",
+                "{{reservation_ID}}"
               ]
             }
           },
@@ -570,17 +606,18 @@
         },
         {
           "name": "Update One Reservation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});"
+                ]
+              }
+            }
+          ],
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{Token}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "PUT",
             "header": [
               {
@@ -591,7 +628,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"apptDate\" : \"2026-10-10T17:00:00.000Z\",\r\n    \"hospital\" : \"6a7a015513c8c7f056f7529c\"\r\n}",
+              "raw": "{\r\n    \"attendees\": 3\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -599,15 +636,15 @@
               }
             },
             "url": {
-              "raw": "{{URL}}/api/v1/appointments/6aba3ba3b9702ba703707343",
+              "raw": "{{URL}}/api/v1/reservations/{{reservation_ID}}",
               "host": [
                 "{{URL}}"
               ],
               "path": [
                 "api",
                 "v1",
-                "appointments",
-                "6aba3ba3b9702ba703707343"
+                "reservations",
+                "{{reservation_ID}}"
               ]
             }
           },
@@ -615,35 +652,46 @@
         },
         {
           "name": "Delete One Reservation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});"
+                ]
+              }
+            }
+          ],
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{Token}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{URL}}/api/v1/appointments/6aba3ba3b9702ba703707343",
+              "raw": "{{URL}}/api/v1/reservations/{{reservation_ID}}",
               "host": [
                 "{{URL}}"
               ],
               "path": [
                 "api",
                 "v1",
-                "appointments",
-                "6aba3ba3b9702ba703707343"
+                "reservations",
+                "{{reservation_ID}}"
               ]
             }
           },
           "response": []
         }
-      ]
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{TOKEN}}",
+            "type": "string"
+          }
+        ]
+      }
     },
     {
       "name": "Additional-Search&Filter",
