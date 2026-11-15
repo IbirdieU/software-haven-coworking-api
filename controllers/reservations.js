@@ -1,5 +1,6 @@
 const Reservation = require('../models/Reservation');
 const CoworkingSpace = require('../models/CoworkingSpace');
+const { calendarQueue } = require('../workers/calendarWorker');
 
 //@desc    Get all reservations
 //@route   GET /api/v1/reservations
@@ -91,6 +92,20 @@ exports.addReservation = async (req,res,next) => {
             return res.status(400).json({success : false, message : `The user with ID ${req.user.id} has already made 3 reservations`})
         }
         const reservation = await Reservation.create(req.body);
+
+        // --- Calendar Queue ---
+        await calendarQueue.add('create-event', {
+            reservationId: reservation._id,
+            user: req.user.id,
+            date: reservation.resvDate
+        }, {
+            attempts: 3,
+            backoff: {
+                type: 'exponential',
+                delay: 2000
+            }
+        });
+
         res.status(201).json({success : true, data : reservation});
     } catch(err) {
         console.log(err);
