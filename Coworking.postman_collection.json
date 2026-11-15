@@ -867,8 +867,12 @@
   ],
   "variable": [
     {
+      "key": "URL",
+      "value": "http://localhost:5000"
+    },
+    {
       "key": "TOKEN",
-      "value": ""
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhZjcyOTY5MDczMzE3YmEzMmEzMDdkYiIsImlhdCI6MTc5NDc0MjcyMiwiZXhwIjoxNzk3MzM0NzIyfQ.O50yVT6xr8Tm8jTH4EDmz4UtaxTb62qUqLlsFn0QFKM"
     }
   ]
 }
