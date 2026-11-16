@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "26b7235b-54ef-46b4-ac71-6150d04307ea",
     "name": "Coworking",
-    "description": "Backend API for reserving vaccine job timeslots, including hospitals, users and bookings.",
+    "description": "Backend API for reserving co-working spaces, including co-working spaces, users and reservations.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "43202287"
   },
@@ -14,20 +14,23 @@
           "name": "Register User",
           "event": [
             {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.environment.set(\"TOKEN\", pm.response.json().token);"
-                ]
-              }
-            },
-            {
               "listen": "prerequest",
               "script": {
                 "type": "text/javascript",
                 "exec": [
                   "pm.environment.set(\"email\", \"user\" + Date.now() + \"@gmail.com\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.environment.set(\"TOKEN\", pm.response.json().token);"
                 ]
               }
             }
@@ -66,6 +69,51 @@
           "response": []
         },
         {
+          "name": "Register Invalid Tel (fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Rejected because of invalid telephone number\", () => {",
+                  "    pm.expect(pm.response.json().msg).to.include(\"valid telephone number\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/auth/register",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Invalid User\",\n    \"tel\": \"abc\",\n    \"email\": \"invalid{{$timestamp}}@gmail.com\",\n    \"password\": \"123456\",\n    \"role\": \"user\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Login",
           "event": [
             {
@@ -73,6 +121,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
                   "pm.environment.set(\"TOKEN\", pm.response.json().token);"
                 ]
               }
@@ -139,7 +190,23 @@
               ]
             }
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Logged in user has tel\", () => {",
+                  "    pm.expect(pm.response.json().data.tel).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -154,7 +221,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\nconst response = pm.response.json();\r\n\r\nconsole.log(response);\r\n\r\npm.test(\"There are some hospitals!!\", () => {\r\n    pm.expect(response.count).to.be.above(0);\r\n})\r\n\r\npm.environment.set(\"coworkingSpace_ID\", pm.response.json().data[0]._id);"
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\nconst response = pm.response.json();\r\n\r\nconsole.log(response);\r\n\r\npm.test(\"There are some co-working spaces\", () => {\r\n    pm.expect(response.count).to.be.above(0);\r\n})\r\n\r\npm.environment.set(\"coworkingSpace_ID\", pm.response.json().data[0]._id);"
                 ]
               }
             },
@@ -182,7 +249,7 @@
                 "coworkingspaces"
               ]
             },
-            "description": "Fetch all hospitals from database."
+            "description": "Fetch all co-working spaces from database."
           },
           "response": []
         },
@@ -224,12 +291,12 @@
                 "{{coworkingSpace_ID}}"
               ]
             },
-            "description": "Fetch a single Hospital with ID 1 from database."
+            "description": "Fetch a single item by ID."
           },
           "response": []
         }
       ],
-      "description": "Hospitals CRUD functionality"
+      "description": "Co-working spaces"
     },
     {
       "name": "4-8 User - Reservations",
@@ -242,7 +309,16 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\npm.environment.set(\"reservation_ID\", pm.response.json().data._id);"
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"Response within 3 seconds\", () => {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});",
+                  "pm.test(\"New reservation is confirmed\", () => {",
+                  "    pm.expect(pm.response.json().data.status).to.eql(\"confirmed\");",
+                  "});",
+                  "pm.environment.set(\"reservation_ID\", pm.response.json().data._id);"
                 ]
               }
             }
@@ -258,7 +334,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"resvDate\": \"2026-11-18T10:00:00\", \r\n    \"attendees\": 2, \r\n    \"specialRequest\": \"Need a projector\"\r\n}",
+              "raw": "{\n    \"resvDate\": \"2026-12-01T10:00:00+07:00\",\n    \"attendees\": 2,\n    \"specialRequest\": \"Need a projector\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -289,7 +365,10 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});"
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.environment.set(\"reservation_ID_2\", pm.response.json().data._id);"
                 ]
               }
             }
@@ -305,7 +384,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"resvDate\": \"2026-11-19T10:00:00\", \r\n    \"attendees\": 2, \r\n    \"specialRequest\": \"Need a projector\"\r\n}",
+              "raw": "{\n    \"resvDate\": \"2026-12-02T10:00:00+07:00\",\n    \"attendees\": 2,\n    \"specialRequest\": \"Need a projector\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -352,7 +431,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"resvDate\": \"2026-11-20T10:00:00\", \r\n    \"attendees\": 2, \r\n    \"specialRequest\": \"Need a projector\"\r\n}",
+              "raw": "{\n    \"resvDate\": \"2026-12-03T10:00:00+07:00\",\n    \"attendees\": 2,\n    \"specialRequest\": \"Need a projector\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -399,7 +478,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"resvDate\": \"2026-11-21T10:00:00\", \r\n    \"attendees\": 2, \r\n    \"specialRequest\": \"Need a projector\"\r\n}",
+              "raw": "{\n    \"resvDate\": \"2026-12-04T10:00:00+07:00\",\n    \"attendees\": 2,\n    \"specialRequest\": \"Need a projector\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -446,7 +525,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"resvDate\": \"2026-11-22T10:00:00\", \r\n    \"attendees\": 999, \r\n    \"specialRequest\": \"-\"\r\n}",
+              "raw": "{\n    \"resvDate\": \"2026-12-05T10:00:00+07:00\",\n    \"attendees\": 999,\n    \"specialRequest\": \"-\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -615,6 +694,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
                   "pm.environment.set(\"TOKEN\",null)"
                 ]
               }
@@ -797,7 +879,7 @@
                 }
               ]
             },
-            "description": "Fetch a single Hospital with ID 1 from database."
+            "description": "Fetch a single item by ID."
           },
           "response": []
         },
@@ -844,7 +926,7 @@
                 }
               ]
             },
-            "description": "Fetch a single Hospital with ID 1 from database."
+            "description": "Fetch a single item by ID."
           },
           "response": []
         },
@@ -919,12 +1001,223 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Sort CoworkingSpace by openTime (desc)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Sorted by openTime descending\", () => {",
+                  "    for (let i = 1; i < response.data.length; i++) {",
+                  "        pm.expect(response.data[i - 1].openTime >= response.data[i].openTime).to.be.true;",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/coworkingspaces?sort=-openTime",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coworkingspaces"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "-openTime"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Paginate CoworkingSpace (page 1, limit 2)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Returns at most 2 items\", () => {",
+                  "    pm.expect(response.count).to.be.at.most(2);",
+                  "});",
+                  "pm.test(\"Has next page\", () => {",
+                  "    pm.expect(response.pagination.next).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/coworkingspaces?page=1&limit=2",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coworkingspaces"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "2"
+                }
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
     {
       "name": "Extra - Check-in & Expire",
       "item": [
+        {
+          "name": "Create Reservation for Check-in",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.environment.set(\"checkin_ID\", pm.response.json().data._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/coworkingspaces/{{coworkingSpace_ID}}/reservations",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coworkingspaces",
+                "{{coworkingSpace_ID}}",
+                "reservations"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"resvDate\": \"2026-12-10T10:00:00+07:00\",\n    \"attendees\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Check-in",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Status is checked-in\", () => {",
+                  "    pm.expect(pm.response.json().data.status).to.eql(\"checked-in\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/reservations/{{checkin_ID}}/checkin",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservations",
+                "{{checkin_ID}}",
+                "checkin"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Check-in Again (fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Cannot check in twice\", () => {",
+                  "    pm.expect(pm.response.json().message).to.include(\"already checked-in\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/reservations/{{checkin_ID}}/checkin",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservations",
+                "{{checkin_ID}}",
+                "checkin"
+              ]
+            }
+          },
+          "response": []
+        },
         {
           "name": "Create Past Reservation (For Expire Test)",
           "event": [
@@ -1024,22 +1317,15 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\nconst response = pm.response.json();\r\nconst new_hospital_id = response.data.id;\r\n\r\npm.environment.set(\"new_coworkingSpace_ID\", pm.response.json().data._id);"
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.environment.set(\"new_coworkingSpace_ID\", pm.response.json().data._id);"
                 ]
               }
             }
           ],
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{TOKEN}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "POST",
             "header": [
               {
@@ -1068,7 +1354,7 @@
                 "coworkingspaces"
               ]
             },
-            "description": "Create a new Hospital with ID 1 in the database."
+            "description": "Create a new co-working space."
           },
           "response": []
         },
@@ -1086,16 +1372,6 @@
             }
           ],
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{TOKEN}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "PUT",
             "header": [
               {
@@ -1125,7 +1401,7 @@
                 "{{new_coworkingSpace_ID}}"
               ]
             },
-            "description": "Update a single Hospital with ID 1 in the database."
+            "description": "Update a single co-working space by ID."
           },
           "response": []
         },
@@ -1143,16 +1419,6 @@
             }
           ],
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{TOKEN}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "DELETE",
             "header": [],
             "body": {
@@ -1176,11 +1442,21 @@
                 "{{new_coworkingSpace_ID}}"
               ]
             },
-            "description": "Delete a single hospital with ID 1 in the database."
+            "description": "Delete a single co-working space by ID."
           },
           "response": []
         }
-      ]
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{ADMIN_TOKEN}}",
+            "type": "string"
+          }
+        ]
+      }
     }
   ],
   "variable": [
