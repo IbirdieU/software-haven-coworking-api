@@ -61,7 +61,7 @@ exports.addReservation = async (req,res,next) => {
             return res.status(400).json({success : false, message : `No coworking space with the id of ${req.params.coworkingSpaceId}`})
         }
 
-        // เช็กว่าจำนวนคนจองเกินความจุสูงสุดหรือไม่
+        // Check if the number of attendees exceeds the maximum capacity
         if (req.body.attendees && req.body.attendees > coworkingSpace.maxCapacity) {
             return res.status(400).json({
                 success: false, 
@@ -74,9 +74,9 @@ exports.addReservation = async (req,res,next) => {
 
         req.body.status = 'confirmed';
 
-        // คำนวณเวลาย้อนหลังไป 15 นาทีจากปัจจุบัน
+        // Calculate the time 15 minutes ago from now
         const expireTime = new Date(Date.now() - 15 * 60 * 1000); 
-        // อัปเดตรายการที่ยังเป็น confirmed และเวลา resvDate เก่ากว่า 15 นาทีที่แล้ว ให้กลายเป็น expired
+        // Update reservations that are still confirmed and whose resvDate is older than 15 minutes to expired
         await Reservation.updateMany(
             { status: 'confirmed', resvDate: { $lt: expireTime } },
             { status: 'expired' }

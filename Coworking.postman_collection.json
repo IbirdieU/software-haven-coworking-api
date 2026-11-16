@@ -680,6 +680,140 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n",
+                  "// เก็บ Token ของ Admin ไว้ใช้ใน Request ถัดไป\r\n",
+                  "pm.environment.set(\"ADMIN_TOKEN\", pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"admin@gmail.com\",\r\n    \"password\": \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/auth/login",
+              "host": ["{{URL}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Admin Delete Any Reservation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Admin can delete any reservation (Status 200)\", function () {\r\n    pm.response.to.have.status(200);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ADMIN_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/reservations/{{reservation_ID}}",
+              "host": ["{{URL}}"],
+              "path": ["api", "v1", "reservations", "{{reservation_ID}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Past Reservation (For Expire Test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n",
+                  "pm.environment.set(\"past_reservation_ID\", pm.response.json().data._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"resvDate\": \"2026-11-14T20:00:00\", \r\n    \"attendees\": 2\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/coworkingspaces/{{coworkingSpace_ID}}/reservations",
+              "host": ["{{URL}}"],
+              "path": ["api", "v1", "coworkingspaces", "{{coworkingSpace_ID}}", "reservations"]
+            }
+          }
+        },
+        {
+          "name": "Verify Expire Logic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n",
+                  "pm.test(\"Past reservation should be expired\", function () {\r\n    var jsonData = pm.response.json();\r\n    var pastResvId = pm.environment.get(\"past_reservation_ID\");\r\n    var targetResv = jsonData.data.find(r => r._id === pastResvId);\r\n    if (targetResv) {\r\n        pm.expect(targetResv.status).to.eql(\"expired\");\r\n    } else {\r\n        console.log(\"Reservation not found in list\");\r\n    }\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/reservations",
+              "host": ["{{URL}}"],
+              "path": ["api", "v1", "reservations"]
+            }
+          }
         }
       ],
       "auth": {
