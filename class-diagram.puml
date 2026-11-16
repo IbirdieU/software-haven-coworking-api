@@ -1,0 +1,71 @@
+@startuml
+hide circle
+skinparam shadowing false
+skinparam DefaultFontName Arial
+
+skinparam class {
+    BackgroundColor<<Application>> #FFF2CC
+    BorderColor<<Application>> #D6B656
+
+    BackgroundColor<<Resource>> #D5E8D4
+    BorderColor<<Resource>> #82B366
+
+    BackgroundColor<<Representation>> #D5E8D4
+    BorderColor<<Representation>> #82B366
+}
+
+package "Coworking API" <<Frame>> {
+
+    class "Coworking Service" as App <<Application>> {
+    }
+
+    class "CoworkingSpaces" as ColRes <<Resource>> {
+        <<GET>> + getCoworkingSpaces(): CoworkingSpace
+        <<POST>> + createCoworkingSpace(): CoworkingSpace
+    }
+
+    class "CoworkingSpace" as InstRes <<Resource>> {
+        <<GET>> + getCoworkingSpace(): CoworkingSpace
+        <<PUT>> + updateCoworkingSpace(): CoworkingSpace
+        <<DELETE>> + deleteCoworkingSpace(): void
+    }
+
+    class "CoworkingSpace" as Rep <<Representation>> {
+        - name
+        - address
+        - tel
+        - openTime
+        - closeTime
+        - maxCapacity
+    }
+
+    class "Reservations" as ResCol <<Resource>> {
+        <<GET>> + getReservations(): Reservation
+        <<POST>> + addReservation(): Reservation
+    }
+
+    class "Reservation" as ResInst <<Resource>> {
+        <<GET>> + getReservation(): Reservation
+        <<PUT>> + updateReservation(): Reservation
+        <<DELETE>> + deleteReservation(): void
+    }
+
+    class "Reservation" as ResRep <<Representation>> {
+        - resvDate
+        - user
+        - coworkingSpace
+        - attendees
+        - specialRequest
+        - status
+    }
+
+    App .right.> ColRes : "/coworkingspaces"\n<<Path>>
+    ColRes .down.> InstRes : "/{id}"\n<<Path>>
+    InstRes .up.|> Rep : "<<use>>"
+
+    App .down.> ResCol : "/reservations"\n<<Path>>
+    InstRes .down.> ResCol : "/{coworkingSpaceId}/reservations"\n<<Path>>
+    ResCol .right.> ResInst : "/{id}"\n<<Path>>
+    ResInst .up.|> ResRep : "<<use>>"
+}
+@enduml
