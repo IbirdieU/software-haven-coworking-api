@@ -754,7 +754,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n",
-                  "// เก็บ Token ของ Admin ไว้ใช้ใน Request ถัดไป\r\n",
+                  "// Save admin token for the next requests\r\n",
                   "pm.environment.set(\"ADMIN_TOKEN\", pm.response.json().token);"
                 ]
               }
@@ -792,6 +792,84 @@
           }
         },
         {
+          "name": "Admin View All Reservations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n",
+                  "pm.test(\"Admin can see reservations of other users\", function () {\r\n    const ids = pm.response.json().data.map(r => r._id);\r\n    pm.expect(ids).to.include(pm.environment.get(\"reservation_ID_2\"));\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/reservations",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin Update Any Reservation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n",
+                  "pm.test(\"Attendees is updated\", function () {\r\n    pm.expect(pm.response.json().data.attendees).to.eql(2);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "description": "JSON Type"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"attendees\": 2\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/reservations/{{reservation_ID_2}}",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservations",
+                "{{reservation_ID_2}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Admin Delete Any Reservation",
           "event": [
             {
@@ -805,20 +883,10 @@
             }
           ],
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{ADMIN_TOKEN}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{URL}}/api/v1/reservations/{{reservation_ID}}",
+              "raw": "{{URL}}/api/v1/reservations/{{reservation_ID_2}}",
               "host": [
                 "{{URL}}"
               ],
@@ -826,12 +894,23 @@
                 "api",
                 "v1",
                 "reservations",
-                "{{reservation_ID}}"
+                "{{reservation_ID_2}}"
               ]
             }
-          }
+          },
+          "response": []
         }
-      ]
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{ADMIN_TOKEN}}",
+            "type": "string"
+          }
+        ]
+      }
     },
     {
       "name": "Extra - Search & Filter",
