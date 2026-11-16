@@ -1,5 +1,6 @@
 const { Worker, Queue } = require('bullmq');
 const IORedis = require('ioredis');
+const { google } = require('googleapis');
 
 // Set up Redis connection (BullMQ requires maxRetriesPerRequest to be null)
 const redisConnection = new IORedis({
@@ -12,24 +13,41 @@ const redisConnection = new IORedis({
 const calendarQueue = new Queue('calendar-queue', { connection: redisConnection });
 const dlq = new Queue('calendar-dlq', { connection: redisConnection });
 
-// 1. Mock function to create a Calendar Event (simulates errors for testing retries)
-const mockCreateCalendarEvent = async (data) => {
+// Create a Google Calendar event (CALENDAR_FAIL_RATE simulates errors for testing retries)
+const createCalendarEvent = async (data) => {
     console.log(`[Calendar API] Creating event for Reservation: ${data.reservationId}...`);
-    
-    // Simulate a 70% chance of Calendar API connection failure
-    if (Math.random() < 0.7) {
-        throw new Error("Calendar API Connection Timeout");
+
+    if (Math.random() < Number(process.env.CALENDAR_FAIL_RATE || 0)) {
+        throw new Error("Simulated Calendar API failure");
     }
-    
-    return { eventId: `cal_${Date.now()}`, status: 'success' };
+    // 1. Set up Google Calendar client with service account
+    const auth = new google.auth.GoogleAuth({
+        keyFile : process.env.GOOGLE_KEY_FILE,
+        scopes : ['https://www.googleapis.com/auth/calendar']
+    });
+    const calendar = google.calendar({ version : 'v3', auth });
+    const start = new Date(data.date);
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
+
+    const res = await calendar.events.insert({
+        calendarId : process.env.GOOGLE_CALENDAR_ID,
+        requestBody : {
+            summary : `Co-working Reservation ${data.reservationId}`,
+            description : `User: ${data.user}`,
+            start : { dateTime : start.toISOString() },
+            end : { dateTime : end.toISOString() }
+        }
+    });
+
+    return { eventId : res.data.id, status : 'success' };
 };
 
 // 2. Create a Worker to process jobs from the queue
 const worker = new Worker('calendar-queue', async (job) => {
     console.log(`\nProcessing Job ID: ${job.id} (Attempt: ${job.attemptsMade + 1}/${job.opts.attempts})`);
     
-    // NOTE: Call the real Google Calendar API here in production (e.g., using googleapis)
-    const result = await mockCreateCalendarEvent(job.data);
+    // Call Google Calendar API
+    const result = await createCalendarEvent(job.data);
     
     console.log(`Job ID: ${job.id} succeeded! (Event ID: ${result.eventId})`);
     return result;
