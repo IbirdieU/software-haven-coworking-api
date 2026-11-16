@@ -1,2 +1,4 @@
 config/config.env
 node_modules/*
+*.postman_environment.json
+newman/
