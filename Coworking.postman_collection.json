@@ -8,7 +8,143 @@
   },
   "item": [
     {
-      "name": "Coworking",
+      "name": "1-2 Register & Login",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"TOKEN\", pm.response.json().token);"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"email\", \"user\" + Date.now() + \"@gmail.com\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "description": "JSON Type"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Test User\",\r\n  \"tel\": \"0818888888\",\r\n  \"email\": \"{{email}}\",\r\n  \"password\": \"123456\",\r\n  \"role\": \"user\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/auth/register",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"TOKEN\", pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "description": "JSON Type"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\" : \"{{email}}\",\r\n    \"password\" : \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/auth/login",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Logged In User with Token",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/auth/me",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3 User - View Co-working Spaces",
       "item": [
         {
           "name": "Get All CoworkingSpaces",
@@ -18,7 +154,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\nconst response = pm.response.json();\r\n\r\nconsole.log(response);\r\n\r\npm.test(\"There are some hospitals!!\", () => {\r\n    pm.expect(response.count).to.be.above(0);\r\n})\r\n\r\npm.execution.setNextRequest(\"Create New Hospital\");\r\npm.environment.set(\"coworkingSpace_ID\", pm.response.json().data[0]._id);"
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\nconst response = pm.response.json();\r\n\r\nconsole.log(response);\r\n\r\npm.test(\"There are some hospitals!!\", () => {\r\n    pm.expect(response.count).to.be.above(0);\r\n})\r\n\r\npm.environment.set(\"coworkingSpace_ID\", pm.response.json().data[0]._id);"
                 ]
               }
             },
@@ -27,7 +163,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const base = pm.variables.get(\"URL\");\r\nconsole.log(\"login url:\", base + \"/api/v1/auth/login\");\r\n\r\npm.sendRequest({\r\n  url: base + \"/api/v1/auth/login\",\r\n  method: \"POST\",\r\n  header: { \"Content-Type\": \"application/json\" },\r\n  body: { mode: \"raw\", raw: JSON.stringify({ email: \"admin@gmail.com\", password: \"12345678\" }) }\r\n}, (err, res) => {\r\n  console.log(\"login err:\", err, \"status:\", res && res.code);\r\n  const token = res && res.json().token;\r\n  console.log(\"token set:\", !!token);\r\n  pm.variables.set(\"TOKEN\", token);\r\n});"
+                  ""
                 ]
               }
             }
@@ -77,201 +213,18 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{URL}}/api/v1/coworkingspaces?name=Haven Space Chula",
+              "raw": "{{URL}}/api/v1/coworkingspaces/{{coworkingSpace_ID}}",
               "host": [
                 "{{URL}}"
               ],
               "path": [
                 "api",
                 "v1",
-                "coworkingspaces"
-              ],
-              "query": [
-                {
-                  "key": "name",
-                  "value": "Haven Space Chula"
-                }
+                "coworkingspaces",
+                "{{coworkingSpace_ID}}"
               ]
             },
             "description": "Fetch a single Hospital with ID 1 from database."
-          },
-          "response": []
-        },
-        {
-          "name": "Create New CoworkingSpace",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status code is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\nconst response = pm.response.json();\r\nconst new_hospital_id = response.data.id;\r\n\r\npm.globals.set(\"global_hospital_ID\", new_hospital_id);\r\npm.execution.setNextRequest(\"Get Single Hospital\");"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{TOKEN}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "description": "JSON Type"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{ \r\n    \"name\": \"Chula Space\", \r\n    \"address\": \"254 Phayathai Rd, Pathum Wan, Bangkok\", \r\n    \"tel\": \"024567890\", \r\n    \"openTime\": \"10:00\", \r\n    \"closeTime\": \"23:00\",\r\n    \"maxCapacity\": 8\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{URL}}/api/v1/coworkingspaces",
-              "host": [
-                "{{URL}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "coworkingspaces"
-              ]
-            },
-            "description": "Create a new Hospital with ID 1 in the database."
-          },
-          "response": []
-        },
-        {
-          "name": "Update Single CoworkingSpace",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\npm.execution.setNextRequest(\"Delete Single Hospital\");"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{TOKEN}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "description": "JSON Type"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"name\" : \"{{$randomFullName}}\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{URL}}/api/v1/hospitals/:hospital_ID",
-              "host": [
-                "{{URL}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "hospitals",
-                ":hospital_ID"
-              ],
-              "variable": [
-                {
-                  "key": "hospital_ID",
-                  "value": "{{global_hospital_ID}}",
-                  "description": "ID of the newly created hospital"
-                }
-              ]
-            },
-            "description": "Update a single Hospital with ID 1 in the database."
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Single CoworkingSpace",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.execution.setNextRequest(null);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{TOKEN}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "DELETE",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{URL}}/api/v1/hospitals/:hospital_ID",
-              "host": [
-                "{{URL}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "hospitals",
-                ":hospital_ID"
-              ],
-              "variable": [
-                {
-                  "key": "hospital_ID",
-                  "value": "{{global_hospital_ID}}",
-                  "description": "ID of the newly created hospital"
-                }
-              ]
-            },
-            "description": "Delete a single hospital with ID 1 in the database."
           },
           "response": []
         }
@@ -279,175 +232,7 @@
       "description": "Hospitals CRUD functionality"
     },
     {
-      "name": "Authentication",
-      "item": [
-        {
-          "name": "Register User",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.environment.set(\"TOKEN\", pm.response.json().token);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "description": "JSON Type"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"name\": \"User2\",\r\n  \"tel\": \"0818888888\",\r\n  \"email\": \"user2@gmail.com\",\r\n  \"password\": \"123456\",\r\n  \"role\": \"user\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{URL}}/api/v1/auth/register",
-              "host": [
-                "{{URL}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "register"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Login",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.environment.set(\"TOKEN\", pm.response.json().token);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "description": "JSON Type"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"email\" : \"admin@gmail.com\",\r\n    \"password\" : \"123456\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{URL}}/api/v1/auth/login",
-              "host": [
-                "{{URL}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "login"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Logged In User with Token",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{Token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{URL}}/api/v1/auth/me",
-              "host": [
-                "{{URL}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "me"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Logout",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.environment.set(\"TOKEN\",null)"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{Token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{URL}}/api/v1/auth/logout",
-              "host": [
-                "{{URL}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "logout"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Reservation",
+      "name": "4-8 User - Reservations",
       "item": [
         {
           "name": "Add One Reservation",
@@ -497,14 +282,61 @@
           "response": []
         },
         {
-          "name": "Add 4th Reservation Copy",
+          "name": "Add Reservation #2",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {\r\n    pm.response.to.have.status(400);\r\n});"
+                  "pm.test(\"Status code is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "description": "JSON Type"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"resvDate\": \"2026-11-19T10:00:00\", \r\n    \"attendees\": 2, \r\n    \"specialRequest\": \"Need a projector\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/coworkingspaces/{{coworkingSpace_ID}}/reservations",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coworkingspaces",
+                "{{coworkingSpace_ID}}",
+                "reservations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Reservation #3",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n"
                 ]
               }
             }
@@ -544,6 +376,100 @@
           "response": []
         },
         {
+          "name": "Add 4th Reservation(fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {\r\n    pm.response.to.have.status(400);\r\n});\r\npm.test(\"Cannot reserve more than 3\", () => {\r\n    pm.expect(pm.response.json().message).to.include(\"already made 3 reservations\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "description": "JSON Type"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"resvDate\": \"2026-11-21T10:00:00\", \r\n    \"attendees\": 2, \r\n    \"specialRequest\": \"Need a projector\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/coworkingspaces/{{coworkingSpace_ID}}/reservations",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coworkingspaces",
+                "{{coworkingSpace_ID}}",
+                "reservations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Reservation Over Capacity (fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {\r\n    pm.response.to.have.status(400);\r\n});\r\npm.test(\"Attendees exceed max capacity\", () => {\r\n    pm.expect(pm.response.json().message).to.include(\"exceeds the maximum capacity\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "description": "JSON Type"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"resvDate\": \"2026-11-22T10:00:00\", \r\n    \"attendees\": 999, \r\n    \"specialRequest\": \"-\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/coworkingspaces/{{coworkingSpace_ID}}/reservations",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coworkingspaces",
+                "{{coworkingSpace_ID}}",
+                "reservations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Get All Reservations",
           "event": [
             {
@@ -551,7 +477,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n"
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\npm.test(\"User sees own 3 reservations\", () => {\r\n    pm.expect(pm.response.json().count).to.eql(3);\r\n});"
                 ]
               }
             }
@@ -682,6 +608,62 @@
           "response": []
         },
         {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"TOKEN\",null)"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/auth/logout",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{TOKEN}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "9-12 Admin - Reservations",
+      "item": [
+        {
           "name": "Admin Login",
           "event": [
             {
@@ -715,8 +697,15 @@
             },
             "url": {
               "raw": "{{URL}}/api/v1/auth/login",
-              "host": ["{{URL}}"],
-              "path": ["api", "v1", "auth", "login"]
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
             }
           }
         },
@@ -748,87 +737,22 @@
             "header": [],
             "url": {
               "raw": "{{URL}}/api/v1/reservations/{{reservation_ID}}",
-              "host": ["{{URL}}"],
-              "path": ["api", "v1", "reservations", "{{reservation_ID}}"]
-            }
-          }
-        },
-        {
-          "name": "Create Past Reservation (For Expire Test)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status code is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n",
-                  "pm.environment.set(\"past_reservation_ID\", pm.response.json().data._id);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"resvDate\": \"2026-11-14T20:00:00\", \r\n    \"attendees\": 2\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{URL}}/api/v1/coworkingspaces/{{coworkingSpace_ID}}/reservations",
-              "host": ["{{URL}}"],
-              "path": ["api", "v1", "coworkingspaces", "{{coworkingSpace_ID}}", "reservations"]
-            }
-          }
-        },
-        {
-          "name": "Verify Expire Logic",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n",
-                  "pm.test(\"Past reservation should be expired\", function () {\r\n    var jsonData = pm.response.json();\r\n    var pastResvId = pm.environment.get(\"past_reservation_ID\");\r\n    var targetResv = jsonData.data.find(r => r._id === pastResvId);\r\n    if (targetResv) {\r\n        pm.expect(targetResv.status).to.eql(\"expired\");\r\n    } else {\r\n        console.log(\"Reservation not found in list\");\r\n    }\r\n});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{URL}}/api/v1/reservations",
-              "host": ["{{URL}}"],
-              "path": ["api", "v1", "reservations"]
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservations",
+                "{{reservation_ID}}"
+              ]
             }
           }
         }
-      ],
-      "auth": {
-        "type": "bearer",
-        "bearer": [
-          {
-            "key": "token",
-            "value": "{{TOKEN}}",
-            "type": "string"
-          }
-        ]
-      }
+      ]
     },
     {
-      "name": "Additional-Search&Filter",
+      "name": "Extra - Search & Filter",
       "item": [
         {
           "name": "Filter CoworkingSpace by Name",
@@ -961,14 +885,14 @@
           "response": []
         },
         {
-          "name": "Filter CoworkingSpace open after 7 PM",
+          "name": "Filter CoworkingSpace open after 8 PM",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\nconst response = pm.response.json();\r\npm.test(\"All results open at or before 20:00\", () => {\r\n    response.data.forEach(space => pm.expect(space.openTime >= \"20:00\").to.be.true);\r\n});"
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\nconst response = pm.response.json();\r\npm.test(\"All results close at or after 20:00\", () => {\r\n    response.data.forEach(space => pm.expect(space.closeTime >= \"20:00\").to.be.true);\r\n});"
                 ]
               }
             }
@@ -997,16 +921,272 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Extra - Check-in & Expire",
+      "item": [
+        {
+          "name": "Create Past Reservation (For Expire Test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n",
+                  "pm.environment.set(\"past_reservation_ID\", pm.response.json().data._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"resvDate\": \"2026-11-14T20:00:00\", \r\n    \"attendees\": 2\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/coworkingspaces/{{coworkingSpace_ID}}/reservations",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coworkingspaces",
+                "{{coworkingSpace_ID}}",
+                "reservations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Verify Expire Logic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n",
+                  "pm.test(\"Past reservation should be expired\", function () {\r\n    var jsonData = pm.response.json();\r\n    var pastResvId = pm.environment.get(\"past_reservation_ID\");\r\n    var targetResv = jsonData.data.find(r => r._id === pastResvId);\r\n    if (targetResv) {\r\n        pm.expect(targetResv.status).to.eql(\"expired\");\r\n    } else {\r\n        console.log(\"Reservation not found in list\");\r\n    }\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{URL}}/api/v1/reservations",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservations"
+              ]
+            }
+          }
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{ADMIN_TOKEN}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Admin - Co-working Space CRUD",
+      "item": [
+        {
+          "name": "Create New CoworkingSpace",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\nconst response = pm.response.json();\r\nconst new_hospital_id = response.data.id;\r\n\r\npm.environment.set(\"new_coworkingSpace_ID\", pm.response.json().data._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "description": "JSON Type"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \r\n    \"name\": \"Chula Space {{$timestamp}}\", \r\n    \"address\": \"254 Phayathai Rd, Pathum Wan, Bangkok\", \r\n    \"tel\": \"024567890\", \r\n    \"openTime\": \"10:00\", \r\n    \"closeTime\": \"23:00\",\r\n    \"maxCapacity\": 8\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/coworkingspaces",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coworkingspaces"
+              ]
+            },
+            "description": "Create a new Hospital with ID 1 in the database."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Single CoworkingSpace",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "description": "JSON Type"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\" : \"{{$randomFullName}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/coworkingspaces/{{new_coworkingSpace_ID}}",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coworkingspaces",
+                "{{new_coworkingSpace_ID}}"
+              ]
+            },
+            "description": "Update a single Hospital with ID 1 in the database."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Single CoworkingSpace",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{URL}}/api/v1/coworkingspaces/{{new_coworkingSpace_ID}}",
+              "host": [
+                "{{URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coworkingspaces",
+                "{{new_coworkingSpace_ID}}"
+              ]
+            },
+            "description": "Delete a single hospital with ID 1 in the database."
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
     {
-      "key": "URL",
-      "value": "http://localhost:5000"
-    },
-    {
       "key": "TOKEN",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhZjcyOTY5MDczMzE3YmEzMmEzMDdkYiIsImlhdCI6MTc5NDc0MjcyMiwiZXhwIjoxNzk3MzM0NzIyfQ.O50yVT6xr8Tm8jTH4EDmz4UtaxTb62qUqLlsFn0QFKM"
+      "value": ""
     }
   ]
 }
